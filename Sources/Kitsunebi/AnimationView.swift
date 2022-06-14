@@ -30,16 +30,11 @@ open class PlayerView: UIView {
   internal var engineInstance: VideoEngine? = nil
 
   public func play(base baseVideoURL: URL, alpha alphaVideoURL: URL, fps: Int) throws {
-    Logger.shared.log("play called", source: "AnimationView")
-    
     engineInstance?.purge()
     engineInstance = VideoEngine(base: baseVideoURL, alpha: alphaVideoURL, fps: fps)
     engineInstance?.updateDelegate = self
     engineInstance?.delegate = self
     try engineInstance?.play()
-    Logger.shared.log("play call finished", source: "AnimationView", userInfo: [
-      "engine_available": engineInstance != nil
-    ])
   }
 
   public func play(hevcWithAlpha hevcWithAlphaVideoURL: URL, fps: Int) throws {
@@ -249,7 +244,6 @@ extension PlayerView: VideoEngineUpdateDelegate {
   }
 
   internal func didCompleted() {
-    Logger.shared.log("didCompleted called", source: "AnimationView")
     guard applicationHandler.isActive else { return }
     clear()
   }
@@ -261,7 +255,6 @@ extension PlayerView: VideoEngineDelegate {
   }
 
   internal func engineDidFinishPlaying(_ engine: VideoEngine) {
-    Logger.shared.log("engineDidFinishPlaying called", source: "AnimationView")
     delegate?.didFinished(self)
   }
 }
