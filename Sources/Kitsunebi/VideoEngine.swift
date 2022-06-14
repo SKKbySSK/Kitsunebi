@@ -97,26 +97,26 @@ internal class VideoEngine: NSObject {
   }
 
   public func play() throws {
-    Logger.shared.log("VideoEngine.play called")
+    Logger.shared.log("VideoEngine.play called", source: "VideoEngine")
     
     try reset()
     displayLink.isPaused = false
   }
 
   public func pause() {
-    Logger.shared.log("VideoEngine.pause called")
+    Logger.shared.log("pause called", source: "VideoEngine")
     guard !isCompleted else { return }
     displayLink.isPaused = true
   }
 
   public func resume() {
-    Logger.shared.log("VideoEngine.resume called")
+    Logger.shared.log("VideoEngine.resume called", source: "VideoEngine")
     guard !isCompleted else { return }
     displayLink.isPaused = false
   }
 
   private func finish() {
-    Logger.shared.log("VideoEngine.finish called")
+    Logger.shared.log("VideoEngine.finish called", source: "VideoEngine")
     displayLink.isPaused = true
     fpsKeeper.clear()
     updateDelegate?.didCompleted()

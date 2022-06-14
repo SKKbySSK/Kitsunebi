@@ -30,21 +30,14 @@ open class PlayerView: UIView {
   internal var engineInstance: VideoEngine? = nil
 
   public func play(base baseVideoURL: URL, alpha alphaVideoURL: URL, fps: Int) throws {
-    Logger.shared.log("play called", userInfo: [
-      "base": baseVideoURL.absoluteString,
-      "alpha": alphaVideoURL.absoluteString,
-      "fps": fps,
-    ])
+    Logger.shared.log("play called", source: "AnimationView")
     
     engineInstance?.purge()
     engineInstance = VideoEngine(base: baseVideoURL, alpha: alphaVideoURL, fps: fps)
     engineInstance?.updateDelegate = self
     engineInstance?.delegate = self
     try engineInstance?.play()
-    Logger.shared.log("play call finished", userInfo: [
-      "base": baseVideoURL.absoluteString,
-      "alpha": alphaVideoURL.absoluteString,
-      "fps": fps,
+    Logger.shared.log("play call finished", source: "AnimationView", userInfo: [
       "engine_available": engineInstance != nil
     ])
   }
@@ -62,15 +55,15 @@ open class PlayerView: UIView {
     guard let commandQueue = device.makeCommandQueue() else { return nil }
     guard let textureCache = try? device.makeTextureCache() else { return nil }
     guard let metalLib = try? device.makeLibrary(URL: Bundle.module.defaultMetalLibraryURL) else {
-      Logger.shared.log("failed to call MTLDevice.makeLibrary")
+      Logger.shared.log("failed to call MTLDevice.makeLibrary", source: "AnimationView")
       return nil
     }
     guard let mp4PipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "mp4FragmentShader") else {
-      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: mp4FragmentShader")
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: mp4FragmentShader", source: "AnimationView")
       return nil
     }
     guard let hevcPipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "hevcFragmentShader") else {
-      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: hevcFragmentShader")
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: hevcFragmentShader", source: "AnimationView")
       return nil
     }
     self.commandQueue = commandQueue
@@ -93,15 +86,15 @@ open class PlayerView: UIView {
     guard let commandQueue = device.makeCommandQueue() else { return nil }
     guard let textureCache = try? device.makeTextureCache() else { return nil }
     guard let metalLib = try? device.makeLibrary(URL: Bundle.module.defaultMetalLibraryURL) else {
-      Logger.shared.log("failed to call MTLDevice.makeLibrary")
+      Logger.shared.log("failed to call MTLDevice.makeLibrary", source: "AnimationView")
       return nil
     }
     guard let mp4PipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "mp4FragmentShader") else {
-      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: mp4FragmentShader")
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: mp4FragmentShader", source: "AnimationView")
       return nil
     }
     guard let hevcPipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "hevcFragmentShader") else {
-      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: hevcFragmentShader")
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: hevcFragmentShader", source: "AnimationView")
       return nil
     }
     self.commandQueue = commandQueue
@@ -236,7 +229,7 @@ extension PlayerView: VideoEngineUpdateDelegate {
         do {
           try self?.renderImage(with: frame, to: nextDrawable)
         } catch let(error) {
-          Logger.shared.log("error occured while rendering image", userInfo: ["error_description": error.localizedDescription])
+          Logger.shared.log("error occured while rendering image", source: "AnimationView", userInfo: ["error_description": error.localizedDescription])
           self?.clear(nextDrawable: nextDrawable)
         }
       }
@@ -244,13 +237,13 @@ extension PlayerView: VideoEngineUpdateDelegate {
   }
 
   internal func didReceiveError(_ error: Swift.Error?) {
-    Logger.shared.log("didReceiveError called", userInfo: ["error_description": error?.localizedDescription])
+    Logger.shared.log("didReceiveError called", source: "AnimationView", userInfo: ["error_description": error?.localizedDescription])
     guard applicationHandler.isActive else { return }
     clear()
   }
 
   internal func didCompleted() {
-    Logger.shared.log("didCompleted called")
+    Logger.shared.log("didCompleted called", source: "AnimationView")
     guard applicationHandler.isActive else { return }
     clear()
   }
@@ -262,21 +255,21 @@ extension PlayerView: VideoEngineDelegate {
   }
 
   internal func engineDidFinishPlaying(_ engine: VideoEngine) {
-    Logger.shared.log("engineDidFinishPlaying called")
+    Logger.shared.log("engineDidFinishPlaying called", source: "AnimationView")
     delegate?.didFinished(self)
   }
 }
 
 extension PlayerView: ApplicationHandlerDelegate {
   func didBecomeActive(_ notification: Notification) {
-    Logger.shared.log("resuming engine", userInfo: [
+    Logger.shared.log("resuming engine", source: "AnimationView", userInfo: [
       "engine_available": engineInstance != nil
     ])
     engineInstance?.resume()
   }
 
   func willResignActive(_ notification: Notification) {
-    Logger.shared.log("pausing engine", userInfo: [
+    Logger.shared.log("pausing engine", source: "AnimationView", userInfo: [
       "engine_available": engineInstance != nil
     ])
     engineInstance?.pause()
