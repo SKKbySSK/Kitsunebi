@@ -229,7 +229,10 @@ extension PlayerView: VideoEngineUpdateDelegate {
         do {
           try self?.renderImage(with: frame, to: nextDrawable)
         } catch let(error) {
-          Logger.shared.log("error occured while rendering image", source: "AnimationView", userInfo: ["error_description": error.localizedDescription])
+          Logger.shared.log("error occured while rendering image", source: "AnimationView", userInfo: [
+            "error_type": String(describing: type(of: error)),
+            "error_description": error.localizedDescription,
+          ])
           self?.clear(nextDrawable: nextDrawable)
         }
       }
@@ -237,7 +240,10 @@ extension PlayerView: VideoEngineUpdateDelegate {
   }
 
   internal func didReceiveError(_ error: Swift.Error?) {
-    Logger.shared.log("didReceiveError called", source: "AnimationView", userInfo: ["error_description": error?.localizedDescription])
+    Logger.shared.log("didReceiveError called", source: "AnimationView", userInfo: [
+      "error_type": String(describing: type(of: error)),
+      "error_description": error?.localizedDescription,
+    ])
     guard applicationHandler.isActive else { return }
     clear()
   }
