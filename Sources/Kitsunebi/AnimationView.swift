@@ -46,16 +46,36 @@ open class PlayerView: UIView {
   }
 
   public init?(frame: CGRect, device: MTLDevice? = MTLCreateSystemDefaultDevice()) {
-    guard let device = device else { return nil }
-    guard let commandQueue = device.makeCommandQueue() else { return nil }
-    guard let textureCache = try? device.makeTextureCache() else { return nil }
+    guard let device = device else {
+      Logger.shared.log("failed to retrieve MTLDevice", source: "AnimationView")
+      return nil
+    }
+    guard let commandQueue = device.makeCommandQueue() else {
+      Logger.shared.log("failed to call MTLDevice.makeCommandQueue", source: "AnimationView")
+      return nil
+    }
+    
+    let textureCache: CVMetalTextureCache
+    do {
+      textureCache = try device.makeTextureCache()
+    } catch {
+      Logger.shared.log("failed to call MTLDevice.makeTextureCache", source: "AnimationView", userInfo: [
+        "error_type": String(describing: type(of: error)),
+        "error_description": error.localizedDescription,
+      ])
+      return nil
+    }
+    
     guard let metalLib = try? device.makeLibrary(URL: Bundle.module.defaultMetalLibraryURL) else {
+      Logger.shared.log("failed to call MTLDevice.makeLibrary", source: "AnimationView")
       return nil
     }
     guard let mp4PipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "mp4FragmentShader") else {
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: mp4FragmentShader", source: "AnimationView")
       return nil
     }
     guard let hevcPipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "hevcFragmentShader") else {
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: hevcFragmentShader", source: "AnimationView")
       return nil
     }
     self.commandQueue = commandQueue
@@ -74,16 +94,36 @@ open class PlayerView: UIView {
   }
 
   required public init?(coder aDecoder: NSCoder) {
-    guard let device = MTLCreateSystemDefaultDevice() else { return nil }
-    guard let commandQueue = device.makeCommandQueue() else { return nil }
-    guard let textureCache = try? device.makeTextureCache() else { return nil }
+    guard let device = MTLCreateSystemDefaultDevice() else {
+      Logger.shared.log("failed to call MTLCreateSystemDefaultDevice", source: "AnimationView")
+      return nil
+    }
+    guard let commandQueue = device.makeCommandQueue() else {
+      Logger.shared.log("failed to call MTLDevice.makeCommandQueue", source: "AnimationView")
+      return nil
+    }
+    
+    let textureCache: CVMetalTextureCache
+    do {
+      textureCache = try device.makeTextureCache()
+    } catch {
+      Logger.shared.log("failed to call MTLDevice.makeTextureCache", source: "AnimationView", userInfo: [
+        "error_type": String(describing: type(of: error)),
+        "error_description": error.localizedDescription,
+      ])
+      return nil
+    }
+    
     guard let metalLib = try? device.makeLibrary(URL: Bundle.module.defaultMetalLibraryURL) else {
+      Logger.shared.log("failed to call MTLDevice.makeLibrary", source: "AnimationView")
       return nil
     }
     guard let mp4PipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "mp4FragmentShader") else {
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: mp4FragmentShader", source: "AnimationView")
       return nil
     }
     guard let hevcPipelineState = try? device.makeRenderPipelineState(metalLib: metalLib, fragmentFunctionName: "hevcFragmentShader") else {
+      Logger.shared.log("failed to call MTLDevice.makeRenderPipelineState, functionName: hevcFragmentShader", source: "AnimationView")
       return nil
     }
     self.commandQueue = commandQueue
@@ -217,7 +257,11 @@ extension PlayerView: VideoEngineUpdateDelegate {
       self?.renderQueue.async { [weak self] in
         do {
           try self?.renderImage(with: frame, to: nextDrawable)
-        } catch {
+        } catch let(error) {
+          Logger.shared.log("error occured while rendering image", source: "AnimationView", userInfo: [
+            "error_type": String(describing: type(of: error)),
+            "error_description": error.localizedDescription,
+          ])
           self?.clear(nextDrawable: nextDrawable)
         }
       }
@@ -225,6 +269,10 @@ extension PlayerView: VideoEngineUpdateDelegate {
   }
 
   internal func didReceiveError(_ error: Swift.Error?) {
+    Logger.shared.log("didReceiveError called", source: "AnimationView", userInfo: [
+      "error_type": String(describing: type(of: error)),
+      "error_description": error?.localizedDescription,
+    ])
     guard applicationHandler.isActive else { return }
     clear()
   }
@@ -247,10 +295,16 @@ extension PlayerView: VideoEngineDelegate {
 
 extension PlayerView: ApplicationHandlerDelegate {
   func didBecomeActive(_ notification: Notification) {
+    Logger.shared.log("resuming engine", source: "AnimationView", userInfo: [
+      "engine_available": engineInstance != nil
+    ])
     engineInstance?.resume()
   }
 
   func willResignActive(_ notification: Notification) {
+    Logger.shared.log("pausing engine", source: "AnimationView", userInfo: [
+      "engine_available": engineInstance != nil
+    ])
     engineInstance?.pause()
   }
 }
